@@ -1,0 +1,121 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Humpi Full-Screen Fill Animation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Full screen container */
+    .fill-container {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      background: #1e3a8a; /* Indigo-800 */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: -1;
+    }
+
+    /* The filling shape - a stylized car silhouette */
+    .fill-shape {
+      width: 300px;
+      height: 150px;
+      position: relative;
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.4));
+    }
+
+    /* The car body outline */
+    .car-outline {
+      fill: none;
+      stroke: #60a5fa; /* Tailwind blue-400 */
+      stroke-width: 4;
+      stroke-linejoin: round;
+      stroke-linecap: round;
+      filter: drop-shadow(0 0 6px #3b82f6);
+      animation: outlineDraw 3s ease forwards;
+    }
+
+    /* The fill shape that animates from left to right */
+    .car-fill {
+      fill: #3b82f6; /* Tailwind blue-500 */
+      clip-path: inset(0 100% 0 0);
+      animation: fillReveal 3s ease forwards;
+      animation-delay: 3s;
+    }
+
+    /* Wheels */
+    .wheel {
+      fill: #1e40af; /* Tailwind blue-900 */
+      filter: drop-shadow(0 0 4px #1e40af);
+      transform-origin: center;
+      animation: wheelSpin 3s linear infinite;
+    }
+
+    /* Animations */
+    @keyframes outlineDraw {
+      0% {
+        stroke-dashoffset: 1000;
+        stroke-dasharray: 1000;
+      }
+      100% {
+        stroke-dashoffset: 0;
+        stroke-dasharray: 1000;
+      }
+    }
+
+    @keyframes fillReveal {
+      0% {
+        clip-path: inset(0 100% 0 0);
+      }
+      100% {
+        clip-path: inset(0 0 0 0);
+      }
+    }
+
+    @keyframes wheelSpin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+<body class="bg-indigo-900 min-h-screen flex items-center justify-center">
+  <div class="fill-container" aria-label="Animated stylized car silhouette filling from left to right">
+    <svg
+      class="fill-shape"
+      viewBox="0 0 300 150"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-labelledby="title desc"
+      aria-hidden="false"
+    >
+      <title id="title">Stylized Car Fill Animation</title>
+      <desc id="desc">A stylized car outline that is drawn and then filled from left to right with spinning wheels</desc>
+
+      <!-- Car fill shape -->
+      <path
+        class="car-fill"
+        d="M20 100 L50 60 L120 60 L160 40 L220 40 L260 80 L280 80 L280 110 L20 110 Z"
+      ></path>
+
+      <!-- Car outline -->
+      <path
+        class="car-outline"
+        d="M20 100 L50 60 L120 60 L160 40 L220 40 L260 80 L280 80 L280 110 L20 110 Z"
+      ></path>
+
+      <!-- Left wheel -->
+      <circle class="wheel" cx="70" cy="110" r="20" />
+      <circle class="wheel" cx="70" cy="110" r="10" fill="#60a5fa" />
+
+      <!-- Right wheel -->
+      <circle class="wheel" cx="230" cy="110" r="20" />
+      <circle class="wheel" cx="230" cy="110" r="10" fill="#60a5fa" />
+    </svg>
+  </div>
+</body>
+</html>

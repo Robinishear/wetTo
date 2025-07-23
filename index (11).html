@@ -1,0 +1,184 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>3D Tunnel Pure CSS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+  />
+  <style>
+    :root {
+      --animation-duration: 3s;
+    }
+    .space-tunnel {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000;
+      perspective: 1000px;
+      overflow: hidden;
+    }
+    .cube-frame {
+      --width: 100px;
+      position: absolute;
+      width: var(--width);
+      height: var(--width);
+      top: calc(50% - 50px);
+      left: calc(50% - 50px);
+      border: 2px solid rgba(128, 255, 255, 0.6);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.3),
+        0 0 60px rgba(0, 128, 255, 0.2);
+      mix-blend-mode: screen;
+      filter: drop-shadow(2px 0 red) drop-shadow(-2px 0 blue);
+      animation: fly var(--animation-duration) linear infinite;
+    }
+    .cube-frame:nth-child(1) {
+      animation-delay: 0s;
+    }
+    .cube-frame:nth-child(2) {
+      animation-delay: calc(var(--animation-duration) / 8 * 1);
+    }
+    .cube-frame:nth-child(3) {
+      animation-delay: calc(var(--animation-duration) / 8 * 2);
+    }
+    .cube-frame:nth-child(4) {
+      animation-delay: calc(var(--animation-duration) / 8 * 3);
+    }
+    .cube-frame:nth-child(5) {
+      animation-delay: calc(var(--animation-duration) / 8 * 4);
+    }
+    .cube-frame:nth-child(6) {
+      animation-delay: calc(var(--animation-duration) / 8 * 5);
+    }
+    .cube-frame:nth-child(7) {
+      animation-delay: calc(var(--animation-duration) / 8 * 6);
+    }
+    .cube-frame:nth-child(8) {
+      animation: none !important;
+    }
+    @keyframes fly {
+      0% {
+        transform: translateZ(600px) scale(0.1) rotate(0deg);
+        opacity: 0;
+      }
+      25% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateZ(-800px) scale(2.5) rotate(360deg);
+        opacity: 0;
+      }
+    }
+    .description-container {
+      position: absolute;
+      top: 32px;
+      left: 32px;
+      text-align: left;
+      letter-spacing: 3px;
+      font-family: 'Arial', sans-serif;
+      z-index: 10;
+    }
+    .description-container .title {
+      font-size: 19px;
+      font-weight: 500;
+      color: white;
+      text-transform: uppercase;
+    }
+    .description-container .subtitle {
+      margin-top: 6px;
+      font-size: 26px;
+      font-weight: 500;
+      color: magenta;
+      text-transform: uppercase;
+    }
+    .author-container {
+      --width: 42px;
+      position: absolute;
+      width: 50%;
+      right: calc(var(--width) / 2);
+      bottom: calc(var(--width) / 2);
+      text-align: right;
+      font-family: 'Arial', sans-serif;
+      z-index: 10;
+    }
+    .author-container .picture {
+      position: absolute;
+      right: 0;
+      top: calc(var(--width) * -1);
+      margin-top: -12px;
+      width: var(--width);
+      height: var(--width);
+    }
+    .author-container .picture img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 9999px;
+      border: 2px solid white;
+    }
+    .author-container .title {
+      font-size: 16px;
+      letter-spacing: 2px;
+      color: white;
+      padding-right: calc(var(--width) + 8px);
+      user-select: none;
+    }
+    @media (max-width: 640px) {
+      .description-container .title {
+        font-size: 16px;
+      }
+      .description-container .subtitle {
+        font-size: 20px;
+      }
+      .author-container {
+        width: 70%;
+        right: 12px;
+        bottom: 12px;
+      }
+      .author-container .title {
+        font-size: 14px;
+        padding-right: calc(var(--width) + 6px);
+      }
+      .author-container .picture {
+        width: 36px;
+        height: 36px;
+        top: -36px;
+        margin-top: -10px;
+      }
+    }
+  </style>
+</head>
+<body class="relative overflow-hidden bg-black">
+  <div class="space-tunnel" aria-label="3D tunnel animation with glowing cubes">
+    <div class="cube-frame" aria-hidden="true"></div>
+    <div class="cube-frame" aria-hidden="true"></div>
+    <div class="cube-frame" aria-hidden="true"></div>
+    <div class="cube-frame" aria-hidden="true"></div>
+    <div class="cube-frame" aria-hidden="true"></div>
+    <div class="cube-frame" aria-hidden="true"></div>
+    <div class="cube-frame" aria-hidden="true"></div>
+    <div class="cube-frame" aria-hidden="true"></div>
+  </div>
+
+  <div class="description-container" role="region" aria-label="Description of the animation">
+    <div class="title">3D Tunnel</div>
+    <div class="subtitle">pure css</div>
+  </div>
+
+  <div class="author-container" role="contentinfo" aria-label="Author information">
+    <div class="picture">
+      <img
+        src="https://assets.codepen.io/595576/internal/avatars/users/default.png?format=auto&version=1689877807&width=80&height=80"
+        alt="Portrait of Sylvain Garnot, a male developer with short dark hair and glasses, smiling, wearing a black shirt"
+        width="42"
+        height="42"
+      />
+    </div>
+    <div class="title">@SylvainGarnot</div>
+  </div>
+</body>
+</html>

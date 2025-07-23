@@ -1,0 +1,321 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>three.js + ShockWave shaderPass</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+        background: #000;
+        font-family: 'Arial', sans-serif;
+        user-select: none;
+      }
+      canvas {
+        display: block;
+      }
+      .dg.ac {
+        z-index: 10;
+      }
+      .title_ui {
+        position: absolute;
+        font-family: Arial, sans-serif;
+        color: #fff;
+        font-size: 0.8rem;
+        user-select: none;
+        z-index: 20;
+      }
+      .title_ui._1 {
+        top: 20px;
+        left: 30px;
+      }
+      .title_ui._2 {
+        bottom: 20px;
+        left: 30px;
+      }
+      .title_ui._3 {
+        bottom: 20px;
+        right: 30px;
+        cursor: pointer;
+      }
+      @media (max-width: 640px) {
+        .title_ui {
+          font-size: 0.7rem;
+        }
+        .title_ui._1 {
+          top: 10px;
+          left: 15px;
+        }
+        .title_ui._2 {
+          bottom: 10px;
+          left: 15px;
+        }
+        .title_ui._3 {
+          bottom: 10px;
+          right: 15px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="goo-canvas"></canvas>
+    <script type="module">
+      import * as THREE from 'https://cdn.skypack.dev/three@0.136.0/build/three.module.js';
+      import { OrbitControls } from 'https://cdn.skypack.dev/three@0.136.0/examples/jsm/controls/OrbitControls.js';
+      import { EffectComposer } from 'https://cdn.skypack.dev/three@0.136.0/examples/jsm/postprocessing/EffectComposer.js';
+      import { RenderPass } from 'https://cdn.skypack.dev/three@0.136.0/examples/jsm/postprocessing/RenderPass.js';
+      import { ShaderPass } from 'https://cdn.skypack.dev/three@0.136.0/examples/jsm/postprocessing/ShaderPass.js';
+      import { UnrealBloomPass } from 'https://cdn.skypack.dev/three@0.136.0/examples/jsm/postprocessing/UnrealBloomPass.js';
+      import { GUI } from 'https://cdn.skypack.dev/dat.gui@0.7.7';
+
+      const canvas = document.querySelector('#goo-canvas');
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(
+        45,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        100
+      );
+      camera.position.z = 5;
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+
+      const light = new THREE.PointLight(0xffffff, 1);
+      light.position.set(5, 5, 5);
+      scene.add(light);
+
+      const rotatingGroup = new THREE.Group();
+      scene.add(rotatingGroup);
+
+      const starGeometry = new THREE.BufferGeometry();
+      const starCount = 1000;
+      const starsPositions = new Float32Array(starCount * 3);
+      for (let i = 0; i < starCount * 3; i++) {
+        starsPositions[i] = (Math.random() - 0.5) * 200;
+      }
+      starGeometry.setAttribute(
+        'position',
+        new THREE.BufferAttribute(starsPositions, 3)
+      );
+      const starMaterial = new THREE.PointsMaterial({
+        color: 0xff00ff,
+        size: 0.1,
+        sizeAttenuation: true,
+      });
+      const stars = new THREE.Points(starGeometry, starMaterial);
+      scene.add(stars);
+
+      const innerGeometry = new THREE.IcosahedronGeometry(1, 1);
+      const innerMaterial = new THREE.MeshStandardMaterial({
+        color: 0x222222,
+        roughness: 0.5,
+        metalness: 1,
+        flatShading: true,
+        transparent: true,
+        opacity: 0.7,
+      });
+      const innerMesh = new THREE.Mesh(innerGeometry, innerMaterial);
+      rotatingGroup.add(innerMesh);
+
+      const outerGeometry = new THREE.IcosahedronGeometry(1.15, 1);
+      const wireframeMaterial = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.1,
+      });
+      const wireframeMesh = new THREE.Mesh(outerGeometry, wireframeMaterial);
+      rotatingGroup.add(wireframeMesh);
+
+      const positions = [];
+      const posAttr = outerGeometry.attributes.position;
+      for (let i = 0; i < posAttr.count; i++) {
+        positions.push(posAttr.getX(i), posAttr.getY(i), posAttr.getZ(i));
+      }
+
+      const particleGeometry = new THREE.BufferGeometry();
+      particleGeometry.setAttribute(
+        'position',
+        new THREE.Float32BufferAttribute(positions, 3)
+      );
+      const particleMaterial = new THREE.PointsMaterial({
+        color: 0xff00ff,
+        size: 0.025,
+      });
+      const particles = new THREE.Points(particleGeometry, particleMaterial);
+      rotatingGroup.add(particles);
+
+      const composer = new EffectComposer(renderer);
+      composer.addPass(new RenderPass(scene, camera));
+
+      const bloomPass = new UnrealBloomPass(
+        new THREE.Vector2(window.innerWidth, window.innerHeight),
+        1.5,
+        0.4,
+        0.05
+      );
+      composer.addPass(bloomPass);
+
+      const ShockwaveShader = {
+        uniforms: {
+          tDiffuse: { value: null },
+          center: { value: new THREE.Vector2(0.5, 0.5) },
+          time: { value: 0.0 },
+          maxRadius: { value: 1.0 },
+          amplitude: { value: 0.1 },
+          speed: { value: 0.3 },
+          width: { value: 0.3 },
+          aspect: { value: window.innerWidth / window.innerHeight },
+          smoothing: { value: 1.0 },
+        },
+        vertexShader: `
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          #define PI 3.14159265359
+          uniform sampler2D tDiffuse;
+          uniform vec2 center;
+          uniform float time;
+          uniform float maxRadius;
+          uniform float amplitude;
+          uniform float speed;
+          uniform float width;
+          uniform float aspect;
+          uniform float smoothing;
+          varying vec2 vUv;
+
+          void main() {
+            vec2 uv = vUv;
+            vec2 aspectUV = vec2((uv.x - center.x) * aspect, uv.y - center.y);
+            float dist = length(aspectUV);
+            float wave = 0.0;
+            float t = mod(time * speed, maxRadius + width);
+            if (dist < t && dist > t - width) {
+              float edgeDist = abs(dist - (t - width / 2.0)) / (width / 2.0);
+              float smoothFactor = smoothstep(1.0 - smoothing, 1.0, edgeDist);
+              wave = amplitude * sin((dist - t + width) / width * PI * 2.0) * (1.0 - smoothFactor);
+            }
+            uv += normalize(aspectUV) * wave;
+            gl_FragColor = texture2D(tDiffuse, uv);
+          }
+        `,
+      };
+
+      const shockwavePass = new ShaderPass(ShockwaveShader);
+      shockwavePass.renderToScreen = true;
+      composer.addPass(shockwavePass);
+
+      let shockwaveActive = false;
+      let shockwaveStartTime = 0;
+      let shockwaveDuration = 10;
+
+      window.addEventListener('dblclick', (event) => {
+        const mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+        const mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        shockwavePass.uniforms.center.value.set((mouseX + 1) / 2, (mouseY + 1) / 2);
+        shockwaveActive = true;
+        shockwaveStartTime = performance.now() / 1000;
+        shockwavePass.uniforms.time.value = 0.0;
+      });
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        composer.setSize(window.innerWidth, window.innerHeight);
+        bloomPass.setSize(window.innerWidth, window.innerHeight);
+        shockwavePass.uniforms.aspect.value = window.innerWidth / window.innerHeight;
+      });
+
+      function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+
+        rotatingGroup.rotation.x += 0.002;
+        rotatingGroup.rotation.y += 0.003;
+
+        if (shockwaveActive) {
+          const elapsedTime = performance.now() / 1000 - shockwaveStartTime;
+          if (elapsedTime < shockwaveDuration) {
+            shockwavePass.uniforms.time.value = elapsedTime;
+          } else {
+            shockwaveActive = false;
+            shockwavePass.uniforms.time.value = 0.0;
+          }
+        }
+        composer.render();
+      }
+
+      animate();
+
+      const gui = new GUI();
+      gui.close();
+
+      const shockwaveFolder = gui.addFolder('Shockwave Shader');
+      shockwaveFolder
+        .add(shockwavePass.uniforms.maxRadius, 'value', 1, 10)
+        .name('Max Radius');
+      shockwaveFolder
+        .add(shockwavePass.uniforms.amplitude, 'value', 0.01, 0.2)
+        .name('Amplitude');
+      shockwaveFolder
+        .add(shockwavePass.uniforms.speed, 'value', 0.1, 5.0)
+        .name('Speed');
+      shockwaveFolder.add(shockwavePass.uniforms.width, 'value', 0.01, 1.0).name('Width');
+      shockwaveFolder
+        .add(shockwavePass.uniforms.smoothing, 'value', 0.0, 3.0)
+        .name('Smoothing');
+      shockwaveFolder.open();
+
+      const bloomFolder = gui.addFolder('Bloom');
+      bloomFolder.add(bloomPass, 'strength', 0, 3).name('Strength');
+      bloomFolder.add(bloomPass, 'radius', 0, 1).name('Radius');
+      bloomFolder.add(bloomPass, 'threshold', 0, 1).name('Threshold');
+      bloomFolder.open();
+
+      let title3;
+      document.addEventListener('DOMContentLoaded', () => {
+        const title1 = document.createElement('h3');
+        title1.classList.add('title_ui', '_1');
+        title1.textContent = 'three.js + ShockWave shaderPass';
+
+        const title2 = document.createElement('h3');
+        title2.classList.add('title_ui', '_2');
+        title2.textContent = 'double click';
+
+        title3 = document.createElement('h3');
+        title3.classList.add('title_ui', '_3');
+        title3.textContent = 'fullscreen on';
+
+        document.body.appendChild(title1);
+        document.body.appendChild(title2);
+        document.body.appendChild(title3);
+
+        title3.addEventListener('click', toggleFullscreen);
+      });
+
+      function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+          title3.textContent = 'fullscreen off';
+        } else if (document.exitFullscreen) {
+          document.exitFullscreen();
+          title3.textContent = 'fullscreen on';
+        }
+      }
+    </script>
+  </body>
+</html>

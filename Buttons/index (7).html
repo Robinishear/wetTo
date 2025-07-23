@@ -1,0 +1,177 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Animated Create Account Button</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400&display=swap');
+
+  body {
+    font-family: "Kanit", sans-serif;
+  }
+
+  @property --blue-x {
+    syntax: "<percentage>";
+    initial-value: 50%;
+    inherits: false;
+  }
+  @property --blue-y {
+    syntax: "<percentage>";
+    initial-value: 50%;
+    inherits: false;
+  }
+  @property --purple-x {
+    syntax: "<percentage>";
+    initial-value: 50%;
+    inherits: false;
+  }
+  @property --purple-y {
+    syntax: "<percentage>";
+    initial-value: 50%;
+    inherits: false;
+  }
+  @property --red-x {
+    syntax: "<percentage>";
+    initial-value: 50%;
+    inherits: false;
+  }
+  @property --red-y {
+    syntax: "<percentage>";
+    initial-value: 50%;
+    inherits: false;
+  }
+  @property --orange-x {
+    syntax: "<percentage>";
+    initial-value: 50%;
+    inherits: false;
+  }
+  @property --orange-y {
+    syntax: "<percentage>";
+    initial-value: 50%;
+    inherits: false;
+  }
+  @property --green-x {
+    syntax: "<percentage>";
+    initial-value: 50%;
+    inherits: false;
+  }
+  @property --green-y {
+    syntax: "<percentage>";
+    initial-value: 50%;
+    inherits: false;
+  }
+  @property --yellow-x {
+    syntax: "<percentage>";
+    initial-value: 50%;
+    inherits: false;
+  }
+  @property --yellow-y {
+    syntax: "<percentage>";
+    initial-value: 50%;
+    inherits: false;
+  }
+
+  .animated-button::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    border-radius: inherit;
+    background-image: 
+      radial-gradient(circle at var(--blue-x, 50%) var(--blue-y, 50%), #18346d 5%, transparent 30%),
+      radial-gradient(circle at var(--purple-x, 50%) var(--purple-y, 50%), purple 5%, transparent 30%),
+      radial-gradient(circle at var(--red-x, 50%) var(--red-y, 50%), red 5%, transparent 30%),
+      radial-gradient(circle at var(--orange-x, 50%) var(--orange-y, 50%), orange 5%, transparent 30%),
+      radial-gradient(circle at var(--green-x, 50%) var(--green-y, 50%), green 5%, transparent 30%),
+      radial-gradient(circle at var(--yellow-x, 50%) var(--yellow-y, 50%), yellow 5%, transparent 30%);
+    background-size: 200% 200%;
+    background-repeat: no-repeat;
+    animation: moveGradients 10s linear infinite;
+  }
+
+  .animated-button::after {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    border-radius: inherit;
+    background: black;
+    z-index: -1;
+    backdrop-filter: blur(var(--after-blur, 3px));
+    transition: opacity 500ms ease-in-out;
+    opacity: var(--after-opacity, 0);
+  }
+
+  .animated-button:hover {
+    --after-opacity: 1;
+  }
+
+  @keyframes moveGradients {
+    0%, 100% {
+      --blue-x: -40%;
+      --blue-y: 35%;
+      --purple-x: 35%;
+      --purple-y: -10%;
+      --red-x: -10%;
+      --red-y: -80%;
+      --orange-x: 50%;
+      --orange-y: 145%;
+      --green-x: 0%;
+      --green-y: 80%;
+      --yellow-x: 35%;
+      --yellow-y: 95%;
+    }
+    25% {
+      --blue-x: 30%;
+      --blue-y: -25%;
+      --purple-x: 5%;
+      --purple-y: 40%;
+      --red-x: 45%;
+      --red-y: 150%;
+      --orange-x: -15%;
+      --orange-y: 30%;
+      --green-x: 45%;
+      --green-y: 15%;
+      --yellow-x: -20%;
+      --yellow-y: -40%;
+    }
+    50% {
+      --blue-x: 70%;
+      --blue-y: 50%;
+      --purple-x: 50%;
+      --purple-y: 120%;
+      --red-x: 35%;
+      --red-y: -80%;
+      --orange-x: 75%;
+      --orange-y: -75%;
+      --green-x: 85%;
+      --green-y: 100%;
+      --yellow-x: 50%;
+      --yellow-y: -20%;
+    }
+    75% {
+      --blue-x: -25%;
+      --blue-y: 10%;
+      --purple-x: 35%;
+      --purple-y: -45%;
+      --red-x: -10%;
+      --red-y: 30%;
+      --orange-x: 20%;
+      --orange-y: -40%;
+      --green-x: -15%;
+      --green-y: 50%;
+      --yellow-x: 45%;
+      --yellow-y: -15%;
+    }
+  }
+</style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen grid place-content-center m-0 font-kanit">
+  <button
+    type="button"
+    class="animated-button relative z-0 cursor-pointer overflow-hidden rounded-full bg-black px-16 py-4 text-base text-white transition-all duration-300 ease-in-out isolation-isolate"
+  >
+    Create Account
+  </button>
+</body>
+</html>

@@ -1,0 +1,405 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Stacked Cards with Radio Navigation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://fonts.bunny.net/css?family=kodchasan:200,400,600"
+    rel="stylesheet"
+  />
+  <style>
+    @property --angle {
+      syntax: "<angle>";
+      initial-value: 0deg;
+      inherits: false;
+    }
+    section {
+      --_offset-steps: 6rem;
+      --_scale-steps: 25;
+      --_opacity-steps: 15;
+      --_ani-duration: 300ms;
+      --_ani-delay: 200ms;
+      --_offset-steps-two: calc(var(--_offset-steps) * -1);
+      --_offset-steps-three: calc(var(--_offset-steps) * -2);
+      --scale-steps-two: calc(1 - var(--_scale-steps) * 0.01);
+      --scale-steps-three: calc(1 - var(--_scale-steps) * 0.02);
+      --opacity-steps-two: calc(1 - var(--_opacity-steps) * 0.02);
+      --opacity-steps-three: calc(1 - var(--_opacity-steps) * 0.04);
+      display: grid;
+      grid-template-areas: "stack";
+      color: black;
+      width: min(calc(100% - 2rem), 40rem);
+      margin: 0 auto;
+    }
+    @media (min-width: 600px) {
+      section {
+        --_offset-steps: 4em;
+      }
+    }
+    article {
+      --_bg-alpha: 0.5;
+      --_border-radius: 10px;
+      --_bg-dot-offset: 20px;
+      --_bg-dot-color: var(--_bg-clr);
+      position: relative;
+      isolation: isolate;
+      background-color: white;
+      grid-area: stack;
+      transition: 500ms ease-in-out;
+      border-radius: var(--_border-radius);
+      translate: 0 var(--_offset);
+      order: var(--_order);
+      z-index: var(--_order);
+      scale: var(--_scale);
+      opacity: var(--_opacity);
+      font-family: "Kodchasan", sans-serif;
+    }
+    article::before,
+    article::after {
+      content: "";
+      position: absolute;
+      border-radius: inherit;
+      z-index: -1;
+    }
+    article::before {
+      inset: calc(var(--_bg-dot-offset) * -1);
+      background-image: radial-gradient(var(--_bg-dot-color) 1px, transparent 0px);
+      background-repeat: repeat;
+      background-size: 5px 5px;
+      background-position: center;
+      border-radius: calc(var(--_border-radius) + var(--_bg-dot-offset));
+      z-index: -1;
+    }
+    article::after {
+      background-color: white;
+      inset: 0;
+      z-index: -2;
+      border-radius: inherit;
+    }
+    article:nth-of-type(1) {
+      --_bg-clr: rgba(163, 230, 53, var(--_bg-alpha, 1));
+      --_order: var(--_1-order);
+      --_scale: var(--_1-scale);
+      --_opacity: var(--_1-opacity);
+      --_offset: var(--_1-offset);
+      --_pointer-event: var(--_1-pointer-event);
+      --_pointer-cursor: var(--_1-pointer-cursor);
+    }
+    article:nth-of-type(2) {
+      --_bg-clr: rgba(251, 191, 36, var(--_bg-alpha, 1));
+      --_order: var(--_2-order);
+      --_scale: var(--_2-scale);
+      --_opacity: var(--_2-opacity);
+      --_offset: var(--_2-offset);
+      --_pointer-event: var(--_2-pointer-event);
+      --_pointer-cursor: var(--_2-pointer-cursor);
+    }
+    article:nth-of-type(3) {
+      --_bg-clr: rgba(249, 168, 212, var(--_bg-alpha, 1));
+      --_order: var(--_3-order);
+      --_scale: var(--_3-scale);
+      --_opacity: var(--_3-opacity);
+      --_offset: var(--_3-offset);
+      --_pointer-event: var(--_3-pointer-event);
+      --_pointer-cursor: var(--_3-pointer-cursor);
+    }
+    section:has(input:nth-child(1):focus-visible) article:nth-of-type(1) label,
+    section:has(input:nth-child(2):focus-visible) article:nth-of-type(2) label,
+    section:has(input:nth-child(3):focus-visible) article:nth-of-type(3) label {
+      rotate: 90deg;
+    }
+    /* 1 checked */
+    section:has(input:nth-child(1):checked) {
+      --_1-order: 3;
+      --_1-scale: 1;
+      --_1-opacity: 1;
+      --_1-offset: 0;
+      --_1-pointer-event: auto;
+      --_1-pointer-cursor: pointer;
+      --_2-order: 2;
+      --_2-scale: var(--scale-steps-two);
+      --_2-opacity: var(--opacity-steps-two);
+      --_2-offset: var(--_offset-steps-two);
+      --_3-order: 1;
+      --_3-scale: var(--scale-steps-three);
+      --_3-opacity: var(--opacity-steps-three);
+      --_3-offset: var(--_offset-steps-three);
+    }
+    /* 2 checked */
+    section:has(input:nth-child(2):checked) {
+      --_2-order: 3;
+      --_2-scale: 1;
+      --_2-opacity: 1;
+      --_2-offset: 0;
+      --_2-pointer-event: auto;
+      --_2-pointer-cursor: pointer;
+      --_3-order: 2;
+      --_3-scale: var(--scale-steps-two);
+      --_3-opacity: var(--opacity-steps-two);
+      --_3-offset: var(--_offset-steps-two);
+      --_1-order: 1;
+      --_1-scale: var(--scale-steps-three);
+      --_1-opacity: var(--opacity-steps-three);
+      --_1-offset: var(--_offset-steps-three);
+    }
+    /* 3 checked */
+    section:has(input:nth-child(3):checked) {
+      --_3-order: 3;
+      --_3-scale: 1;
+      --_3-opacity: 1;
+      --_3-offset: 0;
+      --_3-pointer-event: auto;
+      --_3-pointer-cursor: pointer;
+      --_1-order: 2;
+      --_1-scale: var(--scale-steps-two);
+      --_1-opacity: var(--opacity-steps-two);
+      --_1-offset: var(--_offset-steps-two);
+      --_2-order: 1;
+      --_2-scale: var(--scale-steps-three);
+      --_2-opacity: var(--opacity-steps-three);
+      --_2-offset: var(--_offset-steps-three);
+    }
+    article > header {
+      padding: 0.5rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: var(--_bg-clr);
+      transition: background-color var(--_ani-duration) ease-in-out;
+      border-radius: var(--_border-radius) var(--_border-radius) 0 0;
+    }
+    article > header > label {
+      padding: 0;
+      color: #333;
+      transition: rotate 300ms ease-in-out;
+      pointer-events: var(--_pointer-event, none);
+      cursor: var(--_pointer-cursor, none);
+      font-size: 1.5rem;
+      line-height: 1;
+      user-select: none;
+    }
+    article > header > label:hover {
+      rotate: 90deg;
+    }
+    article > header > h2 {
+      margin: 0;
+      font-weight: 500;
+      font-size: 1.1rem;
+      transition: translate var(--_ani-duration) ease-in-out,
+        opacity var(--_ani-duration) ease-in-out;
+      opacity: var(--_opacity, 0);
+    }
+    article > div {
+      position: relative;
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: 1fr;
+      place-items: start;
+      gap: 2rem;
+    }
+    @media (min-width: 600px) {
+      article > div {
+        grid-template-columns: 1fr 2fr;
+      }
+    }
+    article img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      transition: var(--_ani-duration) ease-in-out;
+      opacity: var(--_opacity, 0);
+      border-radius: 8px;
+    }
+    article .poem {
+      width: 100%;
+      height: 200px;
+      overflow-y: auto;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      color: #222;
+    }
+    article p {
+      transition: var(--_ani-duration) ease-in-out;
+      transition-delay: 500ms;
+      opacity: var(--_opacity, 0);
+      margin: 0 0 1rem 0;
+    }
+    /* general styling */
+    * {
+      box-sizing: border-box;
+    }
+    :root {
+      color-scheme: light dark;
+      --bg-dark: rgb(24, 24, 27);
+      --bg-light: rgb(229, 229, 229);
+      --txt-light: rgb(10, 10, 10);
+      --txt-dark: rgb(245, 245, 245);
+    }
+    body {
+      background-color: var(--bg-light);
+      color: var(--txt-light);
+      min-height: 100svh;
+      margin: 0;
+      padding: 2rem;
+      font-size: 1rem;
+      font-family: "Kodchasan", sans-serif, system-ui, sans-serif;
+      line-height: 1.5;
+      display: grid;
+      place-items: center;
+      gap: 2rem;
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: var(--bg-dark);
+        color: var(--txt-dark);
+      }
+      article .poem {
+        color: #ddd;
+      }
+      article > header > label {
+        color: #ddd;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section>
+    <input class="sr-only" id="card-1" type="radio" name="panel" checked />
+    <input class="sr-only" id="card-2" type="radio" name="panel" />
+    <input class="sr-only" id="card-3" type="radio" name="panel" />
+
+    <article id="article-1" aria-labelledby="label-1" role="region" tabindex="0">
+      <header>
+        <h2 id="label-1">Watchtower</h2>
+        <label for="card-2" aria-label="Next card">&#10539;</label>
+      </header>
+      <div>
+        <img
+          src="https://picsum.photos/id/641/200/200"
+          alt="A tall wooden watch tower standing on a rocky shore with a cloudy sky"
+          width="200"
+          height="200"
+        />
+        <div class="poem">
+          <p>
+            A lone watchtower stands by the moaning shore,<br />
+            Its shadow long, though eyes watch no more.<br />
+            Salt-kissed winds whisper secrets of the sea,<br />
+            But no soul stirs in its silent decree.
+          </p>
+
+          <p>
+            Once it scanned the horizon, steadfast and proud,<br />
+            Now only gulls cry beneath gathering cloud.<br />
+            Rust etches poems in its weathered face,<br />
+            Time’s fingerprints left in every trace.
+          </p>
+
+          <p>
+            The tide comes and goes with a lover’s ache,<br />
+            Touching its base, then gently breaks.<br />
+            It dreams in creaks and the scent of brine,<br />
+            Of voices lost in the strands of time.
+          </p>
+
+          <p>
+            Yet still it stands, as dusk turns to night,<br />
+            A sentinel steeped in fading light—<br />
+            Lonely, yes, but never quite bare,<br />
+            For the sea and stars still know it's there.
+          </p>
+        </div>
+      </div>
+    </article>
+
+    <article id="article-2" aria-labelledby="label-2" role="region" tabindex="0">
+      <header>
+        <h2 id="label-2">Whispers in the Mist</h2>
+        <label for="card-3" aria-label="Next card">&#10539;</label>
+      </header>
+      <div>
+        <img
+          src="https://picsum.photos/id/634/200/200"
+          alt="A misty forest with tall trees and soft grey fog"
+          width="200"
+          height="200"
+        />
+        <div class="poem">
+          <p>
+            The forest sleeps beneath a shroud of grey,<br />
+            Where dawn forgets to find its way.<br />
+            Each branch is cloaked in silver breath,<br />
+            Suspended still, in quiet death.
+          </p>
+          <p>
+            No bird dares break the woven hush,<br />
+            No footstep stirs the softened brush.<br />
+            Only the mist moves, slow and thin,<br />
+            Like ghostly fingers drawing in.
+          </p>
+          <p>
+            Moss clings tight to oaken skin,<br />
+            Guarding secrets held within.<br />
+            And somewhere deep, beyond the veil,<br />
+            Old echoes ride the morning pale.
+          </p>
+          <p>
+            A place of dreams, or things once lost,<br />
+            Where time forgets and paths are crossed.<br />
+            The forest waits with breath held tight—<br />
+            A world between the dark and light.
+          </p>
+        </div>
+      </div>
+    </article>
+
+    <article id="article-3" aria-labelledby="label-3" role="region" tabindex="0">
+      <header>
+        <h2 id="label-3">The Pineapple in the Field</h2>
+        <label for="card-1" aria-label="Next card">&#10539;</label>
+      </header>
+      <div>
+        <img
+          src="https://picsum.photos/id/824/200/200"
+          alt="A pineapple standing alone in a green field with a blue sky"
+          width="200"
+          height="200"
+        />
+        <div class="poem">
+          <p>
+            There once was a pineapple, proud and round,<br />
+            Who somehow sprouted in farming ground.<br />
+            Among the wheat and rows of corn,<br />
+            He stood confused, alone, forlorn.
+          </p>
+          <p>
+            The carrots laughed, “You’re not from here!”<br />
+            The turnips jeered, “Go disappear!”<br />
+            But Pineapple puffed his leafy crown,<br />
+            And said, “I’m tropic royalty, calm down.”
+          </p>
+          <p>
+            He tried to blend with grassy flair,<br />
+            But sunburned cows just stopped to stare.<br />
+            A scarecrow waved in silent cheer,<br />
+            The only friend who came too near.
+          </p>
+          <p>
+            Then came the rain, a soggy squall,<br />
+            And Pineapple held his ground through all.<br />
+            The field soon saw, with sweet surprise,<br />
+            He kept the pests from eating pies.
+          </p>
+          <p>
+            Now every crop from kale to pea,<br />
+            Tips their roots respectfully.<br />
+            The lesson clear, as farmers yield:<br />
+            Don’t judge a fruit by where it’s fielded.
+          </p>
+        </div>
+      </div>
+    </article>
+  </section>
+</body>
+</html>

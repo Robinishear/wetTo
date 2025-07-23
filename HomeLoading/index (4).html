@@ -1,0 +1,183 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Circle Pattern with Enhanced Animation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
+    body {
+      font-family: 'Roboto Mono', monospace;
+    }
+
+    /* Base pulse animation for circles */
+    @keyframes pulseStroke {
+      0%, 100% {
+        stroke-opacity: 0.15;
+        transform: scale(1);
+      }
+      50% {
+        stroke-opacity: 0.4;
+        transform: scale(1.05);
+      }
+    }
+
+    @keyframes pulseCenter {
+      0%, 100% {
+        stroke-opacity: 0.3;
+        transform: scale(1);
+      }
+      50% {
+        stroke-opacity: 0.6;
+        transform: scale(1.1);
+      }
+    }
+
+    @keyframes pulseSmallCircle {
+      0%, 100% {
+        border-color: rgba(255, 255, 255, 0.3);
+        transform: scale(1);
+      }
+      50% {
+        border-color: rgba(255, 255, 255, 0.7);
+        transform: scale(1.2);
+      }
+    }
+
+    @keyframes pulseDot {
+      0%, 100% {
+        background-color: white;
+        transform: scale(1);
+      }
+      50% {
+        background-color: #d1d5db;
+        transform: scale(1.5);
+      }
+    }
+
+    /* Outer circles pulse with stagger */
+    svg circle.outer {
+      animation: pulseStroke 4s ease-in-out infinite;
+      transform-origin: center;
+    }
+    svg circle.outer:nth-child(1) { animation-delay: 0s; }
+    svg circle.outer:nth-child(2) { animation-delay: 0.5s; }
+    svg circle.outer:nth-child(3) { animation-delay: 1s; }
+    svg circle.outer:nth-child(4) { animation-delay: 1.5s; }
+    svg circle.outer:nth-child(5) { animation-delay: 2s; }
+    svg circle.outer:nth-child(6) { animation-delay: 2.5s; }
+
+    /* Center circle pulse */
+    svg circle.center {
+      animation: pulseCenter 4s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    /* Small bottom-right circle pulse */
+    .small-circle {
+      animation: pulseSmallCircle 3s ease-in-out infinite;
+      transform-origin: center;
+    }
+    .small-circle-dot {
+      animation: pulseDot 3s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    /* 14 small circles ("small birds") arranged in a ring with continuous rotation */
+    .small-birds-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 600px;
+      height: 600px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      animation: rotateRing 20s linear infinite;
+    }
+
+    @keyframes rotateRing {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    .small-bird {
+      stroke: rgba(255 255 255 / 0.15);
+      stroke-width: 1;
+      fill: transparent;
+      animation: pulseStroke 4s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    /* Stagger pulse for small birds */
+    .small-bird:nth-child(odd) {
+      animation-delay: 0s;
+    }
+    .small-bird:nth-child(even) {
+      animation-delay: 2s;
+    }
+
+    /* Glow effect on side circles on hover */
+    .main-container:hover svg circle.side-light {
+      stroke-opacity: 1 !important;
+      stroke: rgba(255 255 255 / 0.8) !important;
+      filter: drop-shadow(0 0 8px rgba(255,255,255,0.8));
+      animation: glowPulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes glowPulse {
+      0%, 100% {
+        stroke-opacity: 0.8;
+        filter: drop-shadow(0 0 8px rgba(255,255,255,0.8));
+      }
+      50% {
+        stroke-opacity: 1;
+        filter: drop-shadow(0 0 16px rgba(255,255,255,1));
+      }
+    }
+  </style>
+</head>
+<body class="bg-[#1b3764] flex items-center justify-center min-h-screen relative overflow-hidden">
+  <div class="main-container relative w-[400px] h-[400px]">
+    <!-- Outer circles -->
+    <svg class="absolute inset-0 w-full h-full" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" >
+      <circle class="outer" cx="200" cy="100" r="70" stroke="rgba(255 255 255 / 0.15)" stroke-width="1"/>
+      <circle class="outer side-light" cx="270" cy="150" r="70" stroke="rgba(255 255 255 / 0.15)" stroke-width="1" stroke-opacity="0.15"/>
+      <circle class="outer side-light" cx="270" cy="250" r="70" stroke="rgba(255 255 255 / 0.15)" stroke-width="1" stroke-opacity="0.15"/>
+      <circle class="outer" cx="200" cy="300" r="70" stroke="rgba(255 255 255 / 0.15)" stroke-width="1"/>
+      <circle class="outer side-light" cx="130" cy="250" r="70" stroke="rgba(255 255 255 / 0.15)" stroke-width="1" stroke-opacity="0.15"/>
+      <circle class="outer side-light" cx="130" cy="150" r="70" stroke="rgba(255 255 255 / 0.15)" stroke-width="1" stroke-opacity="0.15"/>
+      <circle class="center" cx="200" cy="200" r="70" stroke="rgba(255 255 255 / 0.3)" stroke-width="1.5"/>
+    </svg>
+    <!-- Center text -->
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-[10px] tracking-widest select-none">
+      CLICKTOENTER
+    </div>
+  </div>
+
+  <!-- Small circle bottom right -->
+  <div class="small-circle absolute bottom-10 right-10 w-8 h-8 rounded-full border border-white border-opacity-30 flex items-center justify-center">
+    <div class="small-circle-dot w-[2px] h-[2px] bg-white rounded-full"></div>
+  </div>
+
+  <!-- 14 small circles ("small birds") arranged in a ring around the main pattern with rotation -->
+  <svg class="small-birds-container" viewBox="0 0 600 600" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" >
+    <g transform="translate(300,300)">
+      <!-- 14 circles evenly spaced in a ring radius 260 -->
+      <circle class="small-bird" cx="260" cy="0" r="20" />
+      <circle class="small-bird" cx="187" cy="187" r="20" />
+      <circle class="small-bird" cx="0" cy="260" r="20" />
+      <circle class="small-bird" cx="-187" cy="187" r="20" />
+      <circle class="small-bird" cx="-260" cy="0" r="20" />
+      <circle class="small-bird" cx="-187" cy="-187" r="20" />
+      <circle class="small-bird" cx="0" cy="-260" r="20" />
+      <circle class="small-bird" cx="187" cy="-187" r="20" />
+      <circle class="small-bird" cx="230" cy="130" r="20" />
+      <circle class="small-bird" cx="130" cy="230" r="20" />
+      <circle class="small-bird" cx="-130" cy="230" r="20" />
+      <circle class="small-bird" cx="-230" cy="130" r="20" />
+      <circle class="small-bird" cx="-230" cy="-130" r="20" />
+      <circle class="small-bird" cx="-130" cy="-230" r="20" />
+    </g>
+  </svg>
+</body>
+</html>

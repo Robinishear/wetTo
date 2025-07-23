@@ -1,0 +1,336 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>Particle Shapes</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{overflow:hidden;background:#000;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif}
+#container{position:fixed;inset:0;background:linear-gradient(180deg,#000510 0%,#00081a 50%,#000c25 100%)}
+.glow{position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 50%,rgba(0,80,180,0.02),rgba(20,0,100,0.03) 50%,transparent 75%);mix-blend-mode:screen;opacity:0.4}
+
+#patternName{position:fixed;top:20px;left:50%;transform:translateX(-50%);
+ color:#fff;font-weight:300;letter-spacing:1px;font-size:18px;pointer-events:none;z-index:100;
+ opacity:0;transition:0.5s;text-align:center;background:rgba(0,0,0,0.5);padding:10px 20px;
+ border-radius:25px;text-shadow:0 0 5px #000;border:1px solid rgba(100,150,255,0.2);
+ white-space:nowrap;max-width:90%;overflow:hidden;text-overflow:ellipsis}
+
+#ui-container{position:fixed;bottom:20px;left:0;width:100%;padding:0 20px;
+ display:flex;justify-content:space-between;align-items:flex-end;z-index:1000;pointer-events:none}
+
+#shapeButton{padding:12px 24px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);
+ border-radius:12px;color:rgba(255,255,255,0.9);font-size:14px;letter-spacing:0.5px;cursor:pointer;
+ backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 4px 12px rgba(0,0,0,0.2);
+ transition:0.3s;display:flex;align-items:center;gap:8px;pointer-events:auto}
+#shapeButton:hover{background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,0.25)}
+#shapeButton:active{transform:translateY(1px);box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+#shapeButton svg{width:18px;height:18px;fill:none;stroke:rgba(255,255,255,0.9);stroke-width:2}
+
+#controlsPanel{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);
+ border-radius:12px;padding:15px;color:rgba(255,255,255,0.9);font-size:14px;
+ backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 4px 12px rgba(0,0,0,0.2);
+ pointer-events:auto;display:flex;gap:20px;flex-wrap:wrap;justify-content:center}
+.control-option{margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.control-option:last-child{margin-bottom:0}
+
+.toggle-switch{position:relative;display:inline-block;width:46px;height:24px}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;cursor:pointer;background:rgba(100,100,100,0.4);border-radius:24px;transition:0.3s}
+.toggle-slider:before{content:"";position:absolute;width:18px;height:18px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:0.3s}
+input:checked+.toggle-slider{background:rgba(100,150,255,0.6)}
+input:checked+.toggle-slider:before{transform:translateX(22px)}
+
+@media(max-width:768px){
+ #ui-container{flex-direction:column;align-items:center;gap:10px;bottom:15px}
+ #controlsPanel{flex-direction:row;justify-content:space-around;width:100%;padding:10px 15px;margin-bottom:10px}
+ .control-option{margin-right:10px}.control-option:last-child{margin-right:0}
+ #patternName{font-size:16px;padding:8px 16px;top:15px}
+}
+@media(max-width:480px){
+ #shapeButton{padding:10px 16px;font-size:13px;width:100%;justify-content:center}
+ #controlsPanel{padding:8px 12px}
+ .toggle-switch{width:40px;height:22px}
+ .toggle-slider:before{width:16px;height:16px}
+ input:checked+.toggle-slider:before{transform:translateX(18px)}
+ .control-option{gap:6px}.control-option label{font-size:12px}
+}
+</style>
+<script type="importmap">
+{
+ "imports":{
+    "three":"https://unpkg.com/three@0.162.0/build/three.module.js",
+    "three/addons/":"https://unpkg.com/three@0.162.0/examples/jsm/"
+ }
+}
+</script>
+</head>
+<body>
+<div id="container"></div>
+<div class="glow"></div>
+<div id="patternName">Supernova Spiral</div>
+
+<div id="ui-container">
+  <div id="controlsPanel">
+    <div class="control-option">
+      <label class="toggle-switch"><input type="checkbox" id="autoRotateToggle" checked><span class="toggle-slider"></span></label>
+      <label for="autoRotateToggle">Auto Rotate</label>
+    </div>
+    <div class="control-option">
+      <label class="toggle-switch"><input type="checkbox" id="animateToggle" checked><span class="toggle-slider"></span></label>
+      <label for="animateToggle">Animate</label>
+    </div>
+  </div>
+
+  <button id="shapeButton" aria-label="Change Shape">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
+    Change Shape
+  </button>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls}   from 'three/addons/controls/OrbitControls.js';
+import {EffectComposer}  from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass}      from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {OutputPass}      from 'three/addons/postprocessing/OutputPass.js';
+
+let scene,camera,renderer,particles,stars,composer,controls;
+let time=0,current=0,isTrans=false,prog=0;
+let autoRot=true,animOn=true;
+const N=20000,NSTAR=6000,SPEED=0.02;
+const names=['Supernova Spiral','Quantum Lattice','Stellar Torus','Celestial Helix'];
+
+function rand(min,max){return Math.random()*(max-min)+min;}
+function patSpiral(i,n){const t=i/n,arms=5,arm=i%arms,θ=3*2*Math.PI*Math.pow(t,0.7)+arm*2*Math.PI/arms,r=t*50+Math.pow(t,2)*10,z=Math.cos(t*6*Math.PI)*5*t;return new THREE.Vector3(Math.cos(θ)*r,Math.sin(θ)*r,z);}
+
+const Φ=(1+Math.sqrt(5))/2,R=28;
+const NODES=[[-1,Φ,0],[1,Φ,0],[-1,-Φ,0],[1,-Φ,0],[0,-1,Φ],[0,1,Φ],[0,-1,-Φ],[0,1,-Φ],[Φ,0,-1],[Φ,0,1],[-Φ,0,-1],[-Φ,0,1]]
+  .map(v=>{const l=Math.hypot(...v);return new THREE.Vector3(v[0]/l*R,v[1]/l*R,v[2]/l*R);});
+const ELEN=4*R/Math.sqrt(10+2*Math.sqrt(5)),EDGES=[];
+for(let a=0;a<12;a++)for(let b=a+1;b<12;b++)
+  if(Math.abs(NODES[a].distanceTo(NODES[b])-ELEN)<1e-3)EDGES.push([a,b]);
+function patLattice(i,n){
+  const quota=Math.floor(n*0.5);
+  if(i<quota){
+    const node=i%NODES.length,r=Math.cbrt(Math.random())*6,u=Math.random(),v=Math.random();
+    const θ=2*Math.PI*u,φ=Math.acos(2*v-1);
+    const off=new THREE.Vector3(r*Math.sin(φ)*Math.cos(θ),r*Math.sin(φ)*Math.sin(θ),r*Math.cos(φ));
+    return NODES[node].clone().add(off);
+  }
+  const perEdge=Math.max(1,Math.floor((n-quota)/EDGES.length)),loc=i-quota,eIdx=Math.floor(loc/perEdge)%EDGES.length,τ=(loc%perEdge)/perEdge;
+  const [ai,bi]=EDGES[eIdx],A=NODES[ai],B=NODES[bi],mid=A.clone().add(B).multiplyScalar(0.5);
+  const dir=B.clone().sub(A).normalize(),perp=new THREE.Vector3().crossVectors(dir,new THREE.Vector3(0,1,0)).normalize();
+  mid.add(perp.multiplyScalar(4));
+  const p=new THREE.Vector3(
+    (1-τ)*(1-τ)*A.x+2*(1-τ)*τ*mid.x+τ*τ*B.x,
+    (1-τ)*(1-τ)*A.y+2*(1-τ)*τ*mid.y+τ*τ*B.y,
+    (1-τ)*(1-τ)*A.z+2*(1-τ)*τ*mid.z+τ*τ*B.z
+  );
+  p.add(new THREE.Vector3(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5));
+  return p;
+}
+
+const SIN45=Math.SQRT1_2,COS45=Math.SQRT1_2;
+function patTorus(i,n){
+  const MAJ=Math.floor(Math.sqrt(n)),MIN=Math.floor(n/MAJ);
+  const u=(i%MAJ)/MAJ*2*Math.PI,v=Math.floor(i/MAJ)/MIN*2*Math.PI;
+  const Rmaj=40,Rmin=10;
+  const x=(Rmaj+Rmin*Math.cos(v))*Math.cos(u);
+  const y=Rmin*Math.sin(v);
+  const z=(Rmaj+Rmin*Math.cos(v))*Math.sin(u);
+  const y2=y*COS45 - z*SIN45;
+  const z2=y*SIN45 + z*COS45;
+  const breath=0.6*Math.sin(v*3+u*2);
+  return new THREE.Vector3(
+    (x+breath)*(1+0.02*(Math.random()-0.5)),
+    (y2)*(1+0.02*(Math.random()-0.5)),
+    (z2+breath)*(1+0.02*(Math.random()-0.5))
+  );
+}
+
+function patHelix(i,n){
+  const hel=i%2,r=35,turns=5,height=80,half=n/2,t=(i%half)/half,θ=t*turns*2*Math.PI,y=(t-0.5)*height,φ=hel*Math.PI;
+  const x=Math.cos(θ+φ)*r,z=Math.sin(θ+φ)*r;
+  if(i%20===0){
+    const bt=(i%200)/200,b=Math.sin(bt*2*Math.PI);
+    return new THREE.Vector3(Math.cos(θ)*r*(1-b)+Math.cos(θ+Math.PI)*r*b,y,Math.sin(θ)*r*(1-b)+Math.sin(θ+Math.PI)*r*b);
+  }
+  if(i%10===0){
+    const or=r+10+Math.random()*15,oy=y+(Math.random()-0.5)*10;
+    return new THREE.Vector3(Math.cos(θ+Math.random())*or,oy,Math.sin(θ+Math.random())*or);
+  }
+  const rv=1+0.2*Math.sin(θ*3),j=0.8;
+  return new THREE.Vector3(x*rv+(Math.random()-0.5)*j,y+(Math.random()-0.5)*j,z*rv+(Math.random()-0.5)*j);
+}
+
+const patterns=[patSpiral,patLattice,patTorus,patHelix];
+const palettes=[
+  [0xff3300,0xff6600,0xff9900,0xffcc00,0xffff00],
+  [0x6600cc,0x9900ff,0xcc00ff,0x6600ff,0x330099],
+  [0x007777,0x00a999,0x00d5bb,0x33ffdd,0x88fff1],
+  [0x9900ff,0x6600ff,0x0066ff,0x00ccff,0x9966ff]
+].map(arr=>arr.map(c=>new THREE.Color(c)));
+
+window.onload=init;
+function init(){
+  scene=new THREE.Scene();
+  camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,1000);
+  camera.position.z=100;
+
+  renderer=new THREE.WebGLRenderer({antialias:true});
+  renderer.setSize(innerWidth,innerHeight);
+  renderer.setPixelRatio(devicePixelRatio);
+  document.getElementById('container').appendChild(renderer.domElement);
+
+  controls=new OrbitControls(camera,renderer.domElement);
+  controls.enableDamping=true;controls.dampingFactor=0.1;controls.rotateSpeed=0.5;controls.zoomSpeed=0.7;
+  controls.minDistance=30;controls.maxDistance=200;controls.enablePan=false;controls.autoRotate=autoRot;
+
+  composer=new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene,camera));
+  composer.addPass(new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),0.35,0.4,0.9));
+  composer.addPass(new OutputPass());
+
+  makeStars();makeParticles();
+
+  addEventListener('resize',resize);
+  document.getElementById('shapeButton').addEventListener('click',next);
+  document.getElementById('shapeButton').addEventListener('touchend',e=>{e.preventDefault();next();});
+  document.getElementById('autoRotateToggle').addEventListener('change',e=>{autoRot=e.target.checked;controls.autoRotate=autoRot;});
+  document.getElementById('animateToggle').addEventListener('change',e=>{animOn=e.target.checked;});
+
+  banner(names[0],true);
+  animate();
+}
+
+function starTex(){const c=document.createElement('canvas');c.width=c.height=32;const ctx=c.getContext('2d'),g=ctx.createRadialGradient(16,16,0,16,16,16);g.addColorStop(0,'#fff');g.addColorStop(0.1,'rgba(255,255,255,0.8)');g.addColorStop(0.25,'rgba(128,128,255,0.5)');g.addColorStop(0.5,'rgba(64,64,200,0.3)');g.addColorStop(1,'rgba(0,0,64,0)');ctx.fillStyle=g;ctx.fillRect(0,0,32,32);ctx.strokeStyle='rgba(255,255,255,0.8)';ctx.beginPath();ctx.moveTo(16,8);ctx.lineTo(16,24);ctx.moveTo(8,16);ctx.lineTo(24,16);ctx.stroke();return new THREE.CanvasTexture(c);}
+function makeStars(){const g=new THREE.BufferGeometry(),p=new Float32Array(NSTAR*3),c=new Float32Array(NSTAR*3),s=new Float32Array(NSTAR);
+  for(let i=0;i<NSTAR;i++){
+    const R=800,φ=Math.acos(2*Math.random()-1),θ=Math.random()*2*Math.PI;
+    p[i*3]=R*Math.sin(φ)*Math.cos(θ);p[i*3+1]=R*Math.sin(φ)*Math.sin(θ);p[i*3+2]=R*Math.cos(φ);
+    const r=Math.random();let Rcol,Gcol,Bcol;
+    if(r<0.5){Rcol=Gcol=Bcol=0.8+Math.random()*0.2;s[i]=0.5+Math.random()*0.5;}
+    else if(r<0.85){Rcol=0.8+Math.random()*0.2;Gcol=0.6+Math.random()*0.3;Bcol=0.4+Math.random()*0.2;s[i]=0.6+Math.random()*0.6;}
+    else if(r<0.98){Rcol=0.4+Math.random()*0.2;Gcol=0.6+Math.random()*0.2;Bcol=0.8+Math.random()*0.2;s[i]=0.7+Math.random()*0.9;}
+    else{Rcol=0.8+Math.random()*0.2;Gcol=0.2+Math.random()*0.2;Bcol=0.2+Math.random()*0.2;s[i]=0.7+Math.random()*0.9;}
+    c[i*3]=Rcol;c[i*3+1]=Gcol;c[i*3+2]=Bcol;
+  }
+  g.setAttribute('position',new THREE.BufferAttribute(p,3));
+  g.setAttribute('color',new THREE.BufferAttribute(c,3));
+  g.setAttribute('size',new THREE.BufferAttribute(s,1));
+  const m=new THREE.PointsMaterial({size:1.5,map:starTex(),vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false});
+  stars=new THREE.Points(g,m);scene.add(stars);
+}
+
+function dotTex(){const c=document.createElement('canvas');c.width=c.height=64;const ctx=c.getContext('2d'),g=ctx.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'#fff');g.addColorStop(0.2,'rgba(255,255,255,0.9)');g.addColorStop(0.4,'rgba(200,200,255,0.5)');g.addColorStop(0.8,'rgba(100,100,200,0.2)');g.addColorStop(1,'rgba(0,0,64,0)');ctx.fillStyle=g;ctx.fillRect(0,0,64,64);return new THREE.CanvasTexture(c);}
+let geoPart;
+function makeParticles(){
+  geoPart=new THREE.BufferGeometry();
+  const p=new Float32Array(N*3),c=new Float32Array(N*3),s=new Float32Array(N);
+  for(let i=0;i<N;i++){
+    const v=patterns[current](i,N);
+    p[i*3]=v.x;p[i*3+1]=v.y;p[i*3+2]=v.z;
+    let idx=Math.floor(Math.random()*palettes[current].length),b=0.8+Math.random()*0.4;
+    if(current===0){const u=i/N;idx=Math.min(Math.floor((1-Math.pow(u,0.5))*palettes[current].length),palettes[current].length-1);}
+    const col=palettes[current][idx];c[i*3]=col.r*b;c[i*3+1]=col.g*b;c[i*3+2]=col.b*b;
+    s[i]=0.8+Math.random()*1.8;
+  }
+  geoPart.setAttribute('position',new THREE.BufferAttribute(p,3));
+  geoPart.setAttribute('color',new THREE.BufferAttribute(c,3));
+  geoPart.setAttribute('size',new THREE.BufferAttribute(s,1));
+  geoPart.userData.currentColors=new Float32Array(c);
+  const mat=new THREE.PointsMaterial({size:2.5,map:dotTex(),vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false});
+  particles=new THREE.Points(geoPart,mat);scene.add(particles);
+}
+
+function banner(msg,inst=false){const el=document.getElementById('patternName');el.textContent=msg;el.style.opacity='1';if(!inst)setTimeout(()=>el.style.opacity='0',2500);}
+
+function next(){if(isTrans)finish();const nxt=(current+1)%patterns.length;start(nxt);banner(names[nxt]);}
+function start(nxt){
+  isTrans=true;prog=0;
+  const fromP=new Float32Array(geoPart.attributes.position.array),
+        fromC=geoPart.userData.currentColors,
+        fromS=new Float32Array(geoPart.attributes.size.array),
+        toP=new Float32Array(fromP.length),toC=new Float32Array(fromC.length),toS=new Float32Array(fromS.length);
+  for(let i=0;i<N;i++){
+    const v=patterns[nxt](i,N);toP[i*3]=v.x;toP[i*3+1]=v.y;toP[i*3+2]=v.z;
+    let idx=Math.floor(Math.random()*palettes[nxt].length),b=0.8+Math.random()*0.4;
+    if(nxt===0){const u=i/N;idx=Math.min(Math.floor((1-Math.pow(u,0.5))*palettes[nxt].length),palettes[nxt].length-1);}
+    const col=palettes[nxt][idx];toC[i*3]=col.r*b;toC[i*3+1]=col.g*b;toC[i*3+2]=col.b*b;
+    toS[i]=0.8+Math.random()*1.8;
+  }
+  particles.userData={fromP,toP,fromC,toC,fromS,toS,target:nxt};
+}
+function finish(){
+  const d=particles.userData;
+  geoPart.attributes.position.array.set(d.toP);
+  geoPart.attributes.color.array.set(d.toC);
+  geoPart.attributes.size.array.set(d.toS);
+  geoPart.attributes.position.needsUpdate=geoPart.attributes.color.needsUpdate=geoPart.attributes.size.needsUpdate=true;
+  geoPart.userData.currentColors=new Float32Array(d.toC);
+  current=d.target;isTrans=false;prog=0;
+}
+
+function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);composer.setSize(innerWidth,innerHeight);}
+
+function animate(){requestAnimationFrame(animate);time+=0.01;controls.update();
+  if(isTrans){
+    prog+=SPEED;
+    if(prog>=1){finish();}
+    else{
+      const e=prog<0.5?4*prog*prog*prog:1-Math.pow(-2*prog+2,3)/2,d=particles.userData,pos=geoPart.attributes.position.array,col=geoPart.attributes.color.array,size=geoPart.attributes.size.array;
+      for(let i=0;i<pos.length;i++){pos[i]=d.fromP[i]*(1-e)+d.toP[i]*e;col[i]=d.fromC[i]*(1-e)+d.toC[i]*e;}
+      for(let i=0;i<size.length;i++){size[i]=d.fromS[i]*(1-e)+d.toS[i]*e;}
+      geoPart.attributes.position.needsUpdate=geoPart.attributes.color.needsUpdate=geoPart.attributes.size.needsUpdate=true;
+    }
+  }else if(animOn){liveAnim();}
+  if(stars){stars.rotation.y+=0.0001;stars.rotation.x+=0.00005;}
+  composer.render();
+}
+
+function liveAnim(){
+  const pos=geoPart.attributes.position.array;
+  switch(current){
+    case 0:
+      for(let i=0;i<N;i++){
+        const x=i*3,y=x+1,z=x+2,X=pos[x],Y=pos[y],Z=pos[z],d=Math.hypot(X,Y);
+        if(d>0.1){
+          const a=0.005*(1-Math.min(d/50,0.8)),c=Math.cos(a),s=Math.sin(a);
+          pos[x]=X*c-Y*s;pos[y]=X*s+Y*c;
+        }
+        pos[z]=Z+Math.sin(time+d*0.1)*0.2;
+      }
+      break;
+    case 1:
+      for(let i=0;i<N;i++){const p=i*3;pos[p]+=Math.sin(time+i*0.2)*0.002;pos[p+1]+=Math.cos(time*0.7+i*0.3)*0.002;pos[p+2]+=Math.sin(time*0.4+i*0.5)*0.002;}
+      break;
+    case 2:
+      const rot=0.01,cs=Math.cos(rot),sn=Math.sin(rot);
+      for(let i=0;i<N;i++){
+        const x=i*3,y=x+1,z=x+2,X=pos[x],Z=pos[z];
+        pos[x]=X*cs-Z*sn;pos[z]=X*sn+Z*cs;
+        pos[y]+=Math.sin(time*0.5+X*0.02+Z*0.02)*0.02;
+      }
+      break;
+    case 3:
+      for(let i=0;i<N;i++){
+        const x=i*3,y=x+1,z=x+2,X=pos[x],Y=pos[y],Z=pos[z],bridge=i%20===0,orb=!bridge&&i%10===0;
+        if(!bridge&&!orb){
+          pos[y]+=0.05;if(pos[y]>40)pos[y]=-40;
+          const dir=i%2?1:-1,a=0.003*dir,cs=Math.cos(a),sn=Math.sin(a);
+          pos[x]=X*cs-Z*sn;pos[z]=X*sn+Z*cs;
+        }else if(bridge){
+          const w=Math.sin(time*2+Y*0.1)*0.3;pos[x]+=w;pos[z]+=w;
+        }else{
+          const a=0.01*(1+Math.sin(Y*0.05)),cs=Math.cos(a),sn=Math.sin(a),nx=X*cs-Z*sn,nz=X*sn+Z*cs;
+          pos[x]=nx;pos[z]=nz;pos[y]+=Math.sin(time+X*0.01)*0.05;
+        }
+      }
+      break;
+  }
+  geoPart.attributes.position.needsUpdate=true;
+}
+</script>
+</body>
+</html>

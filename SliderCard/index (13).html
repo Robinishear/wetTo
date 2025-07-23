@@ -1,0 +1,124 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Animated SVG Cards</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+      background: #480;
+      gap: 1rem;
+      margin: 0;
+      padding: 0;
+    }
+    svg {
+      cursor: pointer;
+      display: block;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      background: white;
+    }
+  </style>
+</head>
+<body>
+  <svg id="card0" width="160" height="240" viewBox="0 0 160 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Animated card 0">
+    <rect x="0" y="0" width="160" height="240" rx="10" ry="10" fill="white" stroke="none"></rect>
+    <!-- paths inserted by script -->
+  </svg>
+  <svg id="card1" width="160" height="240" viewBox="0 0 160 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Animated card 1">
+    <rect x="0" y="0" width="160" height="240" rx="10" ry="10" fill="white" stroke="none"></rect>
+  </svg>
+  <svg id="card2" width="160" height="240" viewBox="0 0 160 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Animated card 2">
+    <rect x="0" y="0" width="160" height="240" rx="10" ry="10" fill="white" stroke="none"></rect>
+  </svg>
+  <svg id="card3" width="160" height="240" viewBox="0 0 160 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Animated card 3">
+    <rect x="0" y="0" width="160" height="240" rx="10" ry="10" fill="white" stroke="none"></rect>
+  </svg>
+
+  <script>
+    (function(){
+      const cardWidth = 160;
+      const cardHeight = 240;
+      const edgeOffset = 10;
+      const lineColor = '#006';
+      const radius = 20;
+      const lines = 100;
+      const duration = 0.5;
+      const centerX = cardWidth / 2;
+      const centerY = cardHeight / 2;
+      const numCards = 4;
+      const cards = Array(numCards).fill().map((_, i) => i);
+
+      const getPath = (p) => `M ${p[0]} ${p[1]} L ${p[2]} ${p[3]} L ${p[4]} ${p[5]} Q ${p[6]} ${p[7]} ${p[8]} ${p[9]} Z`;
+
+      cards.forEach(cardIndex => {
+        const svg = document.getElementById('card' + cardIndex);
+        for(let line=1; line<=lines; line++) {
+          const angle = line * (360 / lines);
+          const rad = (angle * Math.PI) / 180;
+          const x1 = centerX + radius * Math.cos(rad);
+          const y1 = centerY + radius * Math.sin(rad);
+          const x2 = centerX + (cardWidth / 2 - edgeOffset) * (Math.abs(Math.cos(rad)) / Math.cos(rad));
+          const y2 = centerY + (cardHeight / 2 - edgeOffset) * (Math.abs(Math.sin(rad)) / Math.sin(rad));
+          const x3 = centerX + (cardWidth / 2 - edgeOffset) * Math.cos(rad);
+          const y3 = centerY + (cardHeight / 2 - edgeOffset) * Math.sin(rad);
+
+          const patterns = {
+            preliminary: [x3, y1, x2, centerY, x3, y3, x1, y1, x2, y2],
+            initial:     [x2, y2, x3, y3, x1, y1, x2, y2, x3, y3],
+            enter:       [x3, y2, x3, y1, x2, y1, x2, y2, x1, y3],
+            leave:       [x1, y2, x2, y3, (x2 + centerX) / 2, y1, x1, y3, x3, y2]
+          };
+
+          // rotate keys for each card
+          const keys = Object.keys(patterns);
+          const paths = keys.reduce((obj, key, i) => {
+            obj[key] = patterns[keys[(cardIndex + i) % keys.length]];
+            return obj;
+          }, {});
+
+          const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+          path.setAttribute("id", `path${cardIndex}-${line}`);
+          path.setAttribute("d", getPath(paths.preliminary));
+          path.setAttribute("stroke", lineColor);
+          path.setAttribute("stroke-width", "0.5");
+          path.setAttribute("fill", "none");
+          svg.appendChild(path);
+
+          // animate to initial
+          const animateToInitial = document.createElementNS("http://www.w3.org/2000/svg", "animate");
+          animateToInitial.setAttribute("attributeName", "d");
+          animateToInitial.setAttribute("to", getPath(paths.initial));
+          animateToInitial.setAttribute("dur", duration * 2 + "s");
+          animateToInitial.setAttribute("begin", "0s");
+          animateToInitial.setAttribute("fill", "freeze");
+          path.appendChild(animateToInitial);
+
+          // animate enter on mouseenter
+          const animateEnter = document.createElementNS("http://www.w3.org/2000/svg", "animate");
+          animateEnter.setAttribute("attributeName", "d");
+          animateEnter.setAttribute("to", getPath(paths.enter));
+          animateEnter.setAttribute("begin", `card${cardIndex}.mouseenter`);
+          animateEnter.setAttribute("dur", duration + "s");
+          animateEnter.setAttribute("fill", "freeze");
+          path.appendChild(animateEnter);
+
+          // animate leave on mouseleave
+          const animateLeave = document.createElementNS("http://www.w3.org/2000/svg", "animate");
+          animateLeave.setAttribute("attributeName", "d");
+          animateLeave.setAttribute("to", getPath(paths.leave));
+          animateLeave.setAttribute("begin", `card${cardIndex}.mouseleave`);
+          animateLeave.setAttribute("dur", duration + "s");
+          animateLeave.setAttribute("fill", "freeze");
+          path.appendChild(animateLeave);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

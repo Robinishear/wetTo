@@ -1,0 +1,181 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Richard Mattka Style Loading Screen</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: #0f172a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Montserrat', sans-serif;
+      overflow: hidden;
+      user-select: none;
+      cursor: none;
+      position: relative;
+    }
+
+    /* Container */
+    #loading-wrapper {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      gap: 2rem;
+      color: #f8fafc;
+      text-align: center;
+      z-index: 10;
+    }
+
+    /* Animated logo shape */
+    #logo {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2563eb, #9333ea);
+      box-shadow:
+        0 0 20px #9333ea,
+        0 0 40px #2563eb;
+      position: relative;
+      animation: pulseGlow 2.5s ease-in-out infinite;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: visible;
+    }
+
+    /* Inner shape - stylized M letter */
+    #logo svg {
+      width: 80px;
+      height: 80px;
+      fill: #f8fafc;
+      filter: drop-shadow(0 0 4px #f8fafc);
+      animation: floatUpDown 3s ease-in-out infinite;
+    }
+
+    /* Loading text */
+    #loading-text {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: #e0e7ff;
+      text-transform: uppercase;
+      animation: flickerText 3s infinite;
+      user-select: none;
+    }
+
+    /* Flicker animation */
+    @keyframes flickerText {
+      0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+        opacity: 1;
+        text-shadow:
+          0 0 5px #a5b4fc,
+          0 0 10px #a5b4fc,
+          0 0 20px #818cf8;
+      }
+      20%, 22%, 24%, 55% {
+        opacity: 0.4;
+        text-shadow: none;
+      }
+    }
+
+    /* Pulse glow for logo */
+    @keyframes pulseGlow {
+      0%, 100% {
+        box-shadow:
+          0 0 20px #9333ea,
+          0 0 40px #2563eb;
+      }
+      50% {
+        box-shadow:
+          0 0 30px #a78bfa,
+          0 0 60px #7c3aed;
+      }
+    }
+
+    /* Floating animation for SVG */
+    @keyframes floatUpDown {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    /* Custom cursor glow */
+    #cursor-glow {
+      position: fixed;
+      pointer-events: none;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(147, 51, 234, 0.4) 0%, transparent 70%);
+      filter: drop-shadow(0 0 20px rgba(147, 51, 234, 0.6));
+      mix-blend-mode: screen;
+      transform: translate(-50%, -50%);
+      transition: width 0.3s ease, height 0.3s ease;
+      z-index: 50;
+      will-change: transform;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      #loading-wrapper {
+        width: 220px;
+        height: 220px;
+        gap: 1.5rem;
+      }
+      #logo {
+        width: 90px;
+        height: 90px;
+      }
+      #logo svg {
+        width: 60px;
+        height: 60px;
+      }
+      #loading-text {
+        font-size: 1.2rem;
+      }
+      #cursor-glow {
+        width: 130px;
+        height: 130px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="loading-wrapper" role="img" aria-label="Loading animation with glowing logo and flickering text">
+    <div id="logo" aria-hidden="true">
+      <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" role="img">
+        <path d="M12 52V12h8l12 28 12-28h8v40h-8V28L32 52 20 28v24z"/>
+      </svg>
+    </div>
+    <div id="loading-text" aria-live="polite" aria-atomic="true">Loading...</div>
+  </div>
+  <div id="cursor-glow" aria-hidden="true"></div>
+
+  <script>
+    // Custom cursor glow that follows mouse
+    const cursorGlow = document.getElementById('cursor-glow');
+    window.addEventListener('mousemove', (e) => {
+      cursorGlow.style.left = e.clientX + 'px';
+      cursorGlow.style.top = e.clientY + 'px';
+    });
+
+    // Hide default cursor
+    document.body.style.cursor = 'none';
+  </script>
+</body>
+</html>
